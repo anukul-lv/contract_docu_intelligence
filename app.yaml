@@ -1,0 +1,40 @@
+command:
+  - uvicorn
+  - app:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
+
+env:
+  - name: APP_CATALOG
+    value: "dev"
+  - name: APP_SCHEMA
+    value: "doc_intel"
+  - name: CUSTOMER_CATALOG
+    value: "dev"
+  - name: CUSTOMER_SCHEMA
+    value: "doc_intel"
+  - name: DATABRICKS_WAREHOUSE_ID
+    value: "1b6b94e30940a2dc"
+  - name: VOLUME_PATH
+    value: "/Volumes/dev/doc_intel/prvdr_contracts"
+  - name: EXTRACTION_JOB_TEMPLATE_ID
+    value: ""
+  - name: AI_GATEWAY_CHAT_ENDPOINT
+    value: ""
+  - name: AI_GATEWAY_EMBEDDING_ENDPOINT
+    value: ""
+  - name: AI_SEARCH_ENDPOINT
+    value: ""
+  - name: AGENT_SERVING_ENDPOINT
+    value: ""
+  - name: FEATURE_FLAG_CACHE_TTL_SEC
+    value: "60"
+  - name: ENVIRONMENT
+    value: "dev"
+
+resources:
+  sql_warehouses:
+    - permission: CAN_USE
+      name: dbx-coe
