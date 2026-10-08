@@ -1,0 +1,89 @@
+bundle:
+  name: healthcontracts-ai
+
+variables:
+  app_catalog:
+    default: dev
+  app_schema:
+    default: doc_intel
+  customer_catalog:
+    default: dev
+  customer_schema:
+    default: doc_intel
+  sql_warehouse_id:
+    description: "SQL warehouse ID for Statement Execution API"
+  ai_gateway_chat_endpoint:
+    default: ""
+  ai_gateway_embedding_endpoint:
+    default: ""
+  ai_search_endpoint:
+    default: ""
+  agent_serving_endpoint:
+    default: ""
+
+targets:
+  dev:
+    workspace:
+      host: https://adb-2376768479807879.19.azuredatabricks.net
+    variables:
+      app_catalog: dev
+      app_schema: doc_intel
+      customer_catalog: dev
+      customer_schema: doc_intel
+      sql_warehouse_id: "1b6b94e30940a2dc"
+
+  staging:
+    workspace:
+      host: https://adb-staging.azuredatabricks.net
+    variables:
+      app_catalog: hc_app_staging
+      app_schema: operational
+      customer_catalog: hc_customer_staging
+      customer_schema: contracts
+
+  prod:
+    workspace:
+      host: https://adb-prod.azuredatabricks.net
+    variables:
+      app_catalog: hc_app_prod
+      app_schema: operational
+      customer_catalog: hc_customer_prod
+      customer_schema: contracts
+
+resources:
+  apps:
+    healthcontracts_ai:
+      name: healthcontracts-ai
+      source_code_path: .
+
+  jobs:
+    extraction_template:
+      name: healthcare_extraction
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: notebooks/extraction_job.py
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            num_workers: 0
+            node_type_id: "Standard_DS3_v2"
+
+    optimize_vacuum:
+      name: healthcare_optimize_vacuum
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "America/New_York"
+      tasks:
+        - task_key: optimize
+          notebook_task:
+            notebook_path: notebooks/optimize_vacuum_job.py
+
+    current_state_rebuild:
+      name: healthcare_current_state_rebuild
+      schedule:
+        quartz_cron_expression: "0 0 1 * * ?"
+        timezone_id: "America/New_York"
+      tasks:
+        - task_key: rebuild
+          notebook_task:
+            notebook_path: notebooks/current_state_rebuild.py

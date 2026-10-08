@@ -1,0 +1,1 @@
+"""HealthContracts AI backend package."""

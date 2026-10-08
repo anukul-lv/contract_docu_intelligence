@@ -1,0 +1,175 @@
+{
+  "_comment": "Lakeview dashboard definition for DABs deployment. Rename to healthcare_overview.lvdash.json in the bundle.",
+  "displayName": "HealthContracts AI - Portfolio Overview",
+  "warehouse_id": "${var.warehouse_id}",
+  "pages": [
+    {
+      "name": "portfolio_overview",
+      "displayName": "Portfolio Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "contracts_by_type",
+            "queries": [
+              {
+                "name": "q_by_type",
+                "query": {
+                  "datasetName": "contracts_by_type",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "contract_type", "expression": "`contract_type`" },
+                    { "name": "cnt", "expression": "`cnt`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "contract_type", "scale": { "type": "categorical" }, "displayName": "Contract Type" },
+                "y": { "fieldName": "cnt", "scale": { "type": "quantitative" }, "displayName": "Number of Contracts" }
+              }
+            },
+            "displayName": "Contracts by Type"
+          },
+          "position": { "x": 0, "y": 0, "width": 3, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "contracts_by_state",
+            "queries": [
+              {
+                "name": "q_by_state",
+                "query": {
+                  "datasetName": "contracts_by_state",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "state", "expression": "`state`" },
+                    { "name": "cnt", "expression": "`cnt`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "state", "scale": { "type": "categorical" }, "displayName": "State" },
+                "y": { "fieldName": "cnt", "scale": { "type": "quantitative" }, "displayName": "Contracts" }
+              }
+            },
+            "displayName": "Contracts by State"
+          },
+          "position": { "x": 3, "y": 0, "width": 3, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "contracts_by_status",
+            "queries": [
+              {
+                "name": "q_by_status",
+                "query": {
+                  "datasetName": "contracts_by_status",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "status", "expression": "`status`" },
+                    { "name": "cnt", "expression": "`cnt`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": { "fieldName": "cnt", "displayName": "Contracts" },
+                "color": { "fieldName": "status", "displayName": "Status" }
+              }
+            },
+            "displayName": "Contracts by Status"
+          },
+          "position": { "x": 0, "y": 6, "width": 2, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "expiring_timeline",
+            "queries": [
+              {
+                "name": "q_expiring",
+                "query": {
+                  "datasetName": "expiring_contracts",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "expiration_month", "expression": "`expiration_month`" },
+                    { "name": "cnt", "expression": "`cnt`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "expiration_month", "scale": { "type": "categorical" }, "displayName": "Month" },
+                "y": { "fieldName": "cnt", "scale": { "type": "quantitative" }, "displayName": "Expiring Contracts" }
+              }
+            },
+            "displayName": "Expiring Contracts (Next 180 Days)"
+          },
+          "position": { "x": 2, "y": 6, "width": 2, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "reimbursement_distribution",
+            "queries": [
+              {
+                "name": "q_reimb",
+                "query": {
+                  "datasetName": "reimbursement_dist",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "method", "expression": "`method`" },
+                    { "name": "cnt", "expression": "`cnt`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "method", "scale": { "type": "categorical" }, "displayName": "Reimbursement Method" },
+                "y": { "fieldName": "cnt", "scale": { "type": "quantitative" }, "displayName": "Contracts" }
+              }
+            },
+            "displayName": "Reimbursement Method Distribution"
+          },
+          "position": { "x": 4, "y": 6, "width": 2, "height": 6 }
+        }
+      ]
+    }
+  ],
+  "datasets": [
+    {
+      "name": "contracts_by_type",
+      "query": "SELECT trusted_value AS contract_type, COUNT(DISTINCT document_family_id) AS cnt FROM ${var.catalog}.${var.schema}.contracts_current WHERE field_name = 'contract_type' AND trusted_value IS NOT NULL AND applicability_status = 'ACTIVE' GROUP BY trusted_value ORDER BY cnt DESC"
+    },
+    {
+      "name": "contracts_by_state",
+      "query": "SELECT trusted_value AS state, COUNT(DISTINCT document_family_id) AS cnt FROM ${var.catalog}.${var.schema}.contracts_current WHERE field_name = 'state_jurisdiction' AND trusted_value IS NOT NULL AND applicability_status = 'ACTIVE' GROUP BY trusted_value ORDER BY cnt DESC LIMIT 15"
+    },
+    {
+      "name": "contracts_by_status",
+      "query": "WITH docs AS (SELECT document_family_id, MAX(CASE WHEN field_name = 'effective_date' THEN trusted_value END) AS eff, MAX(CASE WHEN field_name = 'expiration_date' THEN trusted_value END) AS exp FROM ${var.catalog}.${var.schema}.contracts_current WHERE applicability_status = 'ACTIVE' GROUP BY document_family_id) SELECT CASE WHEN eff <= CURRENT_DATE() AND (exp IS NULL OR exp >= CURRENT_DATE()) THEN 'Active' WHEN exp < CURRENT_DATE() THEN 'Expired' WHEN eff > CURRENT_DATE() THEN 'Pending' ELSE 'Unknown' END AS status, COUNT(*) AS cnt FROM docs GROUP BY status"
+    },
+    {
+      "name": "expiring_contracts",
+      "query": "SELECT DATE_FORMAT(CAST(trusted_value AS DATE), 'yyyy-MM') AS expiration_month, COUNT(DISTINCT document_family_id) AS cnt FROM ${var.catalog}.${var.schema}.contracts_current WHERE field_name = 'expiration_date' AND trusted_value IS NOT NULL AND CAST(trusted_value AS DATE) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), 180) AND applicability_status = 'ACTIVE' GROUP BY expiration_month ORDER BY expiration_month"
+    },
+    {
+      "name": "reimbursement_dist",
+      "query": "SELECT trusted_value AS method, COUNT(DISTINCT document_family_id) AS cnt FROM ${var.catalog}.${var.schema}.contracts_current WHERE field_name = 'reimbursement_method' AND trusted_value IS NOT NULL AND applicability_status = 'ACTIVE' GROUP BY trusted_value ORDER BY cnt DESC"
+    }
+  ]
+}

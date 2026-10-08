@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Base reset & typography --- */
+:root {
+  --hc-primary: #1e40af;
+  --hc-secondary: #0d9488;
+  --hc-surface: #f8fafc;
+}
+
+body {
+  @apply bg-hc-surface text-gray-900 antialiased;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* --- Scrollbar styling --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* --- Utility classes for trust badges --- */
+.trust-high   { @apply text-hc-success; }
+.trust-medium { @apply text-hc-warning; }
+.trust-low    { @apply text-hc-danger;  }
